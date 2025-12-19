@@ -28,6 +28,7 @@ int main() {
 
         if (input == "1") {
             //Set up machine
+            setupRotors();
 
         } else if (input == "2") {
             //Encrypt / decrypt live
@@ -74,4 +75,15 @@ void displayMenu() {
     << std::endl << "5) Display Menu"
     << std::endl << "6) Exit Program"
     << std::endl;
+}
+
+void setupRotors() {
+    // pick 3 out of 5 rotors (I,II,III,IV,V)
+    
+    // for each rotor
+        // pick a starting letter
+        
+        // create a new rotor object
+        // set it using ring number constant
+        // find the mapping of the letter chosen to the ring offset
 }

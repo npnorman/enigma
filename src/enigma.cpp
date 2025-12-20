@@ -2,7 +2,10 @@
 // Nicholas Norman 2025
 
 #include <iostream>
+#include <vector>
 #include "utils.h"
+
+std::vector<Rotor> currentRotors;
 
 void displayMenu();
 void setupRotors();
@@ -79,11 +82,40 @@ void displayMenu() {
 
 void setupRotors() {
     // pick 3 out of 5 rotors (I,II,III,IV,V)
-    
-    // for each rotor
-        // pick a starting letter
-        
-        // create a new rotor object
-        // set it using ring number constant
-        // find the mapping of the letter chosen to the ring offset
+    std::cout << "Select 3 rotors from I,II,III,IV,V"
+    << std::endl << "Type them in the order to be placed"
+    << std::endl;
+
+    for (int i = 0; i < 3; i++) {
+        std::string rotorChoice = "";
+        std::cout << "Rotor " << i+1 << ": ";
+        std::getline(std::cin, rotorChoice);
+
+        Rotor tempRotor = Rotor();
+
+        if (rotorChoice == "I") {
+            tempRotor.setRotor(RotorNumber::I);
+        } else if (rotorChoice == "II") {
+            tempRotor.setRotor(RotorNumber::II);
+        } else if (rotorChoice == "III") {
+            tempRotor.setRotor(RotorNumber::III);
+        } else if (rotorChoice == "IV") {
+            tempRotor.setRotor(RotorNumber::IV);
+        } else if (rotorChoice == "V") {
+            tempRotor.setRotor(RotorNumber::V);
+        }
+
+        currentRotors.push_back(tempRotor);
+    }
+
+    for (int i = 0; i < currentRotors.size(); i++) {
+        // for each rotor
+            // pick a starting letter
+            
+            // create a new rotor object
+            // set it using ring number constant
+            // find the mapping of the letter chosen to the ring offset
+    }
+
+    displayMenu();
 }

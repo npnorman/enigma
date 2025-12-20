@@ -3,12 +3,14 @@
 
 #include <iostream>
 #include <vector>
+#include <fstream>
 #include "utils.h"
 
 std::vector<Rotor> currentRotors;
 
 void displayMenu();
 void setupRotors();
+void setupDefaultRotors();
 void setupPlugboard();
 void encryptLive();
 void encryptFromFile();
@@ -16,6 +18,7 @@ std::string encrypt(std::string plaintext);
 char encryptLetter(char letter);
 void loadFile(std::string filename);
 void saveFile();
+//may need a backend setup rotor for cracking
 
 int main() {
 
@@ -38,26 +41,18 @@ int main() {
         } else if (input == "2") {
             //Encrypt / decrypt live
             if (currentRotors.size() != 3) {
-                std::cout << "Setting rotors at default: I, II, III" << std::endl;
-
-                currentRotors.push_back(Rotor());
-                currentRotors.push_back(Rotor());
-                currentRotors.push_back(Rotor());
-
-                currentRotors[0].setRotor(RotorNumber::I);
-                currentRotors[0].setRingOffset('A');
-
-                currentRotors[1].setRotor(RotorNumber::II);
-                currentRotors[1].setRingOffset('A');
-
-                currentRotors[2].setRotor(RotorNumber::III);
-                currentRotors[2].setRingOffset('A');
+                setupDefaultRotors();
             }
 
             encryptLive();
 
         } else if (input == "3") {
             //Encrypt / decrypt from a file
+            if (currentRotors.size() != 3) {
+                setupDefaultRotors();
+            }
+
+            encryptFromFile();
             
         } else if (input == "4") {
             //Crack
@@ -101,6 +96,9 @@ void displayMenu() {
 }
 
 void setupRotors() {
+
+    currentRotors.clear();
+
     // pick 3 out of 5 rotors (I,II,III,IV,V)
     std::cout << "Select 3 rotors from I,II,III,IV,V"
     << std::endl << "Type them in the order to be placed"
@@ -111,6 +109,7 @@ void setupRotors() {
         std::cout << "Rotor " << i+1 << ": ";
         std::getline(std::cin, rotorChoice);
 
+        //may want to add a reset instead for time sake (cracking)
         Rotor tempRotor = Rotor();
 
         if (rotorChoice == "I") {
@@ -140,6 +139,23 @@ void setupRotors() {
     }
 
     displayMenu();
+}
+
+void setupDefaultRotors() {
+    std::cout << "Setting rotors at default: I, II, III" << std::endl;
+
+    currentRotors.push_back(Rotor());
+    currentRotors.push_back(Rotor());
+    currentRotors.push_back(Rotor());
+
+    currentRotors[0].setRotor(RotorNumber::I);
+    currentRotors[0].setRingOffset('A');
+
+    currentRotors[1].setRotor(RotorNumber::II);
+    currentRotors[1].setRingOffset('A');
+
+    currentRotors[2].setRotor(RotorNumber::III);
+    currentRotors[2].setRingOffset('A');
 }
 
 void encryptLive() {
@@ -216,4 +232,46 @@ char encryptLetter(char letter) {
     char newLetter = char(letterPos + 65);
 
     return newLetter;
+}
+
+void encryptFromFile() {
+    // option to save with initial settings or not
+
+    // ask which file in /in/ to encode
+
+
+    std::string inPath = "./in/";
+    std::string inFileName = "encoded_grace_hopper.txt";
+    std::string inFullPath = inPath + inFileName;
+
+    // pull in file
+    std::ifstream inputFile(inFullPath);
+
+    // encrypted message
+    std::string encrpytedMessage = "";
+
+    // encrypt it character by character
+    char c;
+    while (inputFile.get(c)) {
+        //while not EOF
+        //encrypt
+        if (std::isalpha(c)) {
+            encrpytedMessage += encryptLetter(c);
+        }
+    }
+
+    inputFile.close();
+
+    // save to new file
+    std::string outPath = "./out/";
+    std::string outFileName = "encoded_" + inFileName;
+    std::string outFullPath = outPath + outFileName;
+
+    std::ofstream outputFile(outFullPath);
+    outputFile << encrpytedMessage;
+    outputFile.close();
+
+    std::cout << outFileName << " written to /out/" << std::endl;
+
+    displayMenu();
 }

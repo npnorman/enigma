@@ -48,6 +48,25 @@ class Rotor {
     int ringSwitch; //turnover
     std::string rotorName;
 
+    int getMap(bool isForward, int index) {
+
+        index += ringOffset;
+        index %= 26;
+
+        int finalIndex = 0;
+
+        if (isForward) {
+            finalIndex = forward[index];
+        } else {
+            //final letter is the mapped letter - the original offset
+            finalIndex = backward[index];
+        }
+
+        finalIndex = (((finalIndex- ringOffset) % 26) + 26) % 26;
+
+        return finalIndex;
+    }
+
  public:
     Rotor() {}
 
@@ -108,8 +127,6 @@ class Rotor {
     }
 
     bool turnRotor() {
-        std::cout << "Rotor Turned";
-
         ringOffset += 1;
         ringOffset %= 26;
 
@@ -122,24 +139,11 @@ class Rotor {
     }
 
     int getForward(int index) {
-        index += ringOffset;
-        index %= 26;
-
-        //final letter is the mapped letter - the original offset
-        int finalIndex = (((forward[index] - ringOffset) % 26) + 26) % 26;
-
-        return finalIndex;
+        return getMap(true, index);
     }
 
     int getBackward(int index) {
-
-        index += ringOffset;
-        index %= 26;
-
-        //final letter is the mapped letter - the original offset
-        int finalIndex = (((backward[index] - ringOffset) % 26) + 26) % 26;
-
-        return finalIndex;
+        return getMap(false, index);
     }
 
     std::string getName() {

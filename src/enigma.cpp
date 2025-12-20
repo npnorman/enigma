@@ -172,10 +172,11 @@ std::string encrypt(std::string plaintext) {
     
     for (int i = 0; i < plaintext.length(); i++) {
 
-        if (plaintext[i] != ' ') {
+        // if a plaintext letter, encrypt
+        if (std::isalpha(plaintext[i])) {
             output += encryptLetter(plaintext[i]);
         } else {
-            output += ' ';
+            output += plaintext[i];
         }
         
     }

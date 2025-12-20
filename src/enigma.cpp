@@ -10,6 +10,8 @@ std::vector<Rotor> currentRotors;
 void displayMenu();
 void setupRotors();
 void setupPlugboard();
+void encryptLive();
+void encryptFromFile();
 std::string encrypt(std::string plaintext);
 char encryptLetter(char letter);
 void loadFile(std::string filename);
@@ -35,6 +37,24 @@ int main() {
 
         } else if (input == "2") {
             //Encrypt / decrypt live
+            if (currentRotors.size() != 3) {
+                std::cout << "Setting rotors at default: I, II, III" << std::endl;
+
+                currentRotors.push_back(Rotor());
+                currentRotors.push_back(Rotor());
+                currentRotors.push_back(Rotor());
+
+                currentRotors[0].setRotor(RotorNumber::I);
+                currentRotors[0].setRingOffset('A');
+
+                currentRotors[1].setRotor(RotorNumber::II);
+                currentRotors[1].setRingOffset('A');
+
+                currentRotors[2].setRotor(RotorNumber::III);
+                currentRotors[2].setRingOffset('A');
+            }
+
+            encryptLive();
 
         } else if (input == "3") {
             //Encrypt / decrypt from a file
@@ -110,12 +130,89 @@ void setupRotors() {
 
     for (int i = 0; i < currentRotors.size(); i++) {
         // for each rotor
-            // pick a starting letter
-            
-            // create a new rotor object
-            // set it using ring number constant
-            // find the mapping of the letter chosen to the ring offset
+        // pick a starting letter
+        std::cout << "Pick a starting letter for " << currentRotors[i].getName() <<
+        std::endl;
+        std::string input;
+        std::getline(std::cin, input);
+
+        currentRotors[i].setRingOffset(input[0]);
     }
 
     displayMenu();
+}
+
+void encryptLive() {
+
+    std::string input;
+
+    bool keepGoing = true;
+    while (keepGoing) {
+        //get input as a string
+        std::cout << "Enter plaintext or ciphertext (/ to exit): ";
+        std::getline(std::cin, input);
+
+        if (input == "/") {
+            keepGoing = false;
+        } else {
+            //encrypt
+            std::string encoded;
+            encoded = encrypt(input);
+
+            //print encrypted output
+            std::cout << ">>> " << encoded << std::endl;
+        }
+    }
+
+    displayMenu();
+}
+
+std::string encrypt(std::string plaintext) {
+    std::string output = "";
+    
+    for (int i = 0; i < plaintext.length(); i++) {
+
+        if (plaintext[i] != ' ') {
+            output += encryptLetter(plaintext[i]);
+        } else {
+            output += ' ';
+        }
+        
+    }
+
+    return output;
+}
+
+char encryptLetter(char letter) {
+
+    // store last rotor turned (true for first always)
+    bool lastRotorTurned = true;
+
+    // convert letter to position (0-25)
+    letter = std::toupper(letter);
+    int letterPos = (int)letter - 65;
+
+    // for each rotor (forward)
+    for (int i = 0; i < currentRotors.size(); i++) {
+        // if last rotor turned returned true, turn
+        if (lastRotorTurned) {
+            lastRotorTurned = currentRotors[2-i].turnRotor();
+        }
+
+        // get mapping from rotor i, plug in last to current
+        letterPos = currentRotors[2-i].getForward(letterPos);
+    }
+
+    // reflect
+    letterPos = Enigma_I_UKW_B[letterPos][1];
+
+    // for each rotor (backward)
+    for (int i = 0; i < currentRotors.size(); i++) {
+        // get mapping from rotor i, plug in last to current
+        letterPos = currentRotors[i].getBackward(letterPos);
+    }
+
+    char newLetter = char(letterPos + 65);
+
+    return newLetter;
 }

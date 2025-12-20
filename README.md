@@ -44,6 +44,8 @@ Noting that each part (input, rotor, reflector, plug board) are all mappings, I 
 
 Each rotor will have a mapping such that some letter, represented by a number, will have a mapping to a new letter in the next rotor. Likewise, when moving backwards, they are reversed. To implement this I will be using maps and bidirectional maps (object) to store these values.
 
+Note: The turnover is represented as the characters from 0-25, not their mappings. As well, when retreiving a letter, you must get the mapping, then subtract 1 from the final result to get the correct final mapping. Ex. Offset = 1, A->D, final result = D-1 = C.
+
 The input, plugboard, and reflector are all one direction mappings and the rotors are bidirectional mapping.
 
 For historical accuracy, the rotor and reflector settings will mimick real world enigma machines.

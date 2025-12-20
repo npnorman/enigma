@@ -214,8 +214,12 @@ char encryptLetter(char letter) {
         // if last rotor turned returned true, turn
         if (lastRotorTurned) {
             lastRotorTurned = currentRotors[2-i].turnRotor();
-        }
 
+        }
+        //rotate all rotors before encoding
+    }
+
+    for (int i = 0; i < currentRotors.size(); i++) {
         // get mapping from rotor i, plug in last to current
         letterPos = currentRotors[2-i].getForward(letterPos);
     }
@@ -235,13 +239,10 @@ char encryptLetter(char letter) {
 }
 
 void encryptFromFile() {
-    // option to save with initial settings or not
-
     // ask which file in /in/ to encode
 
-
     std::string inPath = "./in/";
-    std::string inFileName = "encoded_grace_hopper.txt";
+    std::string inFileName = "grace_hopper.txt";
     std::string inFullPath = inPath + inFileName;
 
     // pull in file
@@ -249,6 +250,31 @@ void encryptFromFile() {
 
     // encrypted message
     std::string encrpytedMessage = "";
+
+    // option to save with initial settings or not
+    bool showInitialInfo;
+    std::cout << "Would you like to save initial setting in file (y/n)? ";
+    std::string input;
+    std::getline(std::cin, input);
+
+    if (input == "y") {
+        showInitialInfo = true;
+
+        std::string names = "";
+        std::string offsets = "";
+
+        //write intial settings of each rotor
+        for (int i = 0; i < currentRotors.size(); i++) {
+            names += currentRotors[i].getName();
+            offsets += currentRotors[i].getRingOffset();
+
+            if (i < currentRotors.size() - 1) {
+                names += ',';
+            }
+        }
+
+        encrpytedMessage += names + ": " + offsets + "\n";
+    }
 
     // encrypt it character by character
     char c;
@@ -264,7 +290,15 @@ void encryptFromFile() {
 
     // save to new file
     std::string outPath = "./out/";
-    std::string outFileName = "encoded_" + inFileName;
+    std::string outFileName = "encoded_";
+
+    // not initial information added in file name
+    if (showInitialInfo) {
+        outFileName += "settings_";
+    }
+
+    outFileName += inFileName;
+
     std::string outFullPath = outPath + outFileName;
 
     std::ofstream outputFile(outFullPath);

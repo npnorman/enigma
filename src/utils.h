@@ -122,15 +122,15 @@ class Rotor {
         letter = std::toupper(letter);
 
         ringOffset = (int)letter - 65;
-
-        ringOffset = 0;
     }
 
     bool turnRotor() {
+
         ringOffset += 1;
         ringOffset %= 26;
 
-        if (ringSwitch - ringOffset == 0) {
+        //checks the turnover before it turns
+        if (ringSwitch == ringOffset) {
             //turn over
             return true;
         }
@@ -150,6 +150,9 @@ class Rotor {
         return rotorName;
     }
 
+    char getRingOffset() {
+        return char(ringOffset + 65);
+    }
 };
 
 #endif

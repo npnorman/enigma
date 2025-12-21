@@ -6,6 +6,7 @@
 #include <vector>
 #include <fstream>
 #include "utils.h"
+#include "cryptography.h"
 
 std::vector<Rotor> currentRotors;
 bool isTracing = false;
@@ -19,8 +20,12 @@ void encryptFromFile();
 void turnRotors();
 std::string encrypt(std::string plaintext);
 char encryptLetter(char letter);
-void loadFile(std::string filename);
+void loadFile();
 void saveFile();
+
+//cracking
+void testIndexOfCoincidence();
+
 //may need a backend setup rotor for cracking
 
 int main() {
@@ -63,6 +68,7 @@ int main() {
             
         } else if (input == "4") {
             //Crack
+            testIndexOfCoincidence();
 
         } else if (input == "5") {
             //Display menu again
@@ -96,7 +102,7 @@ void displayMenu() {
     << std::endl << "1) Setup Machine Rotors & Plugboard"
     << std::endl << "2) Encrypt live"
     << std::endl << "3) Encrypt from a file"
-    << std::endl << "4) Break enigma (NOT IMPLEMENTED YET)"
+    << std::endl << "4) Get Index of Coincidence of file"
     << std::endl << "5) Display Menu"
     << std::endl << "6) Exit Program"
     << std::endl;
@@ -356,6 +362,35 @@ void encryptFromFile() {
     outputFile.close();
 
     std::cout << outFileName << " written to /out/" << std::endl;
+
+    displayMenu();
+}
+
+void testIndexOfCoincidence() {
+    //get file
+    // ask which file in /in/ to encode
+    std::string inFileName = "";
+    std::cout << "Please type file name to test Ic(x): ";
+    std::getline(std::cin, inFileName);
+
+    std::string inPath = "./in/";
+    std::string inFullPath = inPath + inFileName;
+
+    // pull in file
+    std::ifstream inputFile(inFullPath);
+
+    //get entire test as a string
+    std::string inputText = "";
+    std::string line = "";
+    
+    while (std::getline(inputFile, line)) {
+        inputText += line;
+    }
+
+    inputFile.close();
+
+    // print Ic
+    std::cout << "Index of Coincidence = " << indexOfCoincidence(inputText) << std::endl;
 
     displayMenu();
 }

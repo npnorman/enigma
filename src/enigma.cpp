@@ -2,11 +2,13 @@
 // Nicholas Norman 2025
 
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <fstream>
 #include "utils.h"
 
 std::vector<Rotor> currentRotors;
+bool isTracing = false;
 
 void displayMenu();
 void setupRotors();
@@ -32,6 +34,10 @@ int main() {
     //while loop to have menu
     bool keepGoing = true;
     while(keepGoing) {
+
+        //reset
+        isTracing = false;
+
         std::cout << "> ";
         std::getline(std::cin, input);
 
@@ -162,6 +168,14 @@ void setupDefaultRotors() {
 void encryptLive() {
 
     std::string input;
+    
+    //ask to enable tracing
+    std::cout << "Enable tracing (y/n)? ";
+    std::getline(std::cin, input);
+
+    if (input == "y") {
+        isTracing = true;
+    }
 
     bool keepGoing = true;
     while (keepGoing) {
@@ -220,26 +234,51 @@ void turnRotors() {
 
 char encryptLetter(char letter) {
 
+    std::stringstream trace;
+
     //turn rotors first
     turnRotors();
 
+    //trace start
+    for (int i = 0; i < currentRotors.size(); i++) {
+        trace << currentRotors[i].getRingOffset();
+    }
+
+    trace << ": " << char(std::toupper(letter));
+
     // convert letter to position (0-25)
-    letter = std::toupper(letter);
+    letter = char(std::toupper(letter));
     int letterPos = (int)letter - 65;
 
     //map through initial rotors
     for (int i = 0; i < currentRotors.size(); i++) {
+
+        int currentRotorIndex = 2-i;
+
         //get forward mapping
-        letterPos = currentRotors[2-i].getForward(letterPos);
+        letterPos = currentRotors[currentRotorIndex].getForward(letterPos);
+
+        //trace
+        trace << " =" << currentRotors[currentRotorIndex].getName() << "=> " << char(letterPos + 65);
     }
 
     // reflect
     letterPos = Enigma_I_UKW_B[letterPos][1];
 
+    // trace
+    trace << " =R=> " << char(letterPos + 65);
+
     // for each rotor (backward)
     for (int i = 0; i < currentRotors.size(); i++) {
         // get mapping from rotor i, plug in last to current
         letterPos = currentRotors[i].getBackward(letterPos);
+
+        //trace
+        trace << " =" << currentRotors[i].getName() << "=> " << char(letterPos + 65);
+    }
+
+    if (isTracing) {
+        std::cout << trace.str() << std::endl;
     }
 
     char newLetter = char(letterPos + 65);

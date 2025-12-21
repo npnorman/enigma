@@ -70,11 +70,11 @@ int main() {
             //Crack
             testIndexOfCoincidence();
 
-        } else if (input == "5") {
+        } else if (input == "a") {
             //Display menu again
             displayMenu();
               
-        } else if (input == "6") {
+        } else if (input == "b") {
             //Exit
             std::cout << "Thank you for using the Enigma Machine. Schönen Tag noch!" << std::endl;
             keepGoing = false;
@@ -103,8 +103,8 @@ void displayMenu() {
     << std::endl << "2) Encrypt live"
     << std::endl << "3) Encrypt from a file"
     << std::endl << "4) Get Index of Coincidence of file"
-    << std::endl << "5) Display Menu"
-    << std::endl << "6) Exit Program"
+    << std::endl << "a) Display Menu"
+    << std::endl << "b) Exit Program"
     << std::endl;
 }
 

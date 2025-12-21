@@ -14,6 +14,7 @@ void setupDefaultRotors();
 void setupPlugboard();
 void encryptLive();
 void encryptFromFile();
+void turnRotors();
 std::string encrypt(std::string plaintext);
 char encryptLetter(char letter);
 void loadFile(std::string filename);
@@ -200,27 +201,35 @@ std::string encrypt(std::string plaintext) {
     return output;
 }
 
+void turnRotors() {
+    // checks to move previous to see if they
+    // were exposed to the pawl in the last keypress
+    if (currentRotors[1].isAtNotch()) {
+        // if L at notch, move M and L
+        currentRotors[1].turnRotor();
+        currentRotors[0].turnRotor();
+    
+    } else if (currentRotors[2].isAtNotch()) {
+        // if R at notch, move M
+        currentRotors[1].turnRotor();
+    }
+
+    // always turn 2 (R)
+    currentRotors[2].turnRotor();
+}
+
 char encryptLetter(char letter) {
 
-    // store last rotor turned (true for first always)
-    bool lastRotorTurned = true;
+    //turn rotors first
+    turnRotors();
 
     // convert letter to position (0-25)
     letter = std::toupper(letter);
     int letterPos = (int)letter - 65;
 
-    // for each rotor (forward)
+    //map through initial rotors
     for (int i = 0; i < currentRotors.size(); i++) {
-        // if last rotor turned returned true, turn
-        if (lastRotorTurned) {
-            lastRotorTurned = currentRotors[2-i].turnRotor();
-
-        }
-        //rotate all rotors before encoding
-    }
-
-    for (int i = 0; i < currentRotors.size(); i++) {
-        // get mapping from rotor i, plug in last to current
+        //get forward mapping
         letterPos = currentRotors[2-i].getForward(letterPos);
     }
 

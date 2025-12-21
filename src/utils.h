@@ -124,12 +124,13 @@ class Rotor {
         ringOffset = (int)letter - 65;
     }
 
-    bool turnRotor() {
+    void turnRotor() {
 
         ringOffset += 1;
         ringOffset %= 26;
+    }
 
-        //checks the turnover before it turns
+    bool isAtNotch() {
         if (ringSwitch == ringOffset) {
             //turn over
             return true;

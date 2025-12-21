@@ -288,9 +288,11 @@ char encryptLetter(char letter) {
 
 void encryptFromFile() {
     // ask which file in /in/ to encode
+    std::string inFileName = "";
+    std::cout << "Please type file name to encrypt: ";
+    std::getline(std::cin, inFileName);
 
     std::string inPath = "./in/";
-    std::string inFileName = "grace_hopper.txt";
     std::string inFullPath = inPath + inFileName;
 
     // pull in file
@@ -300,7 +302,7 @@ void encryptFromFile() {
     std::string encrpytedMessage = "";
 
     // option to save with initial settings or not
-    bool showInitialInfo;
+    bool showInitialInfo = false;
     std::cout << "Would you like to save initial setting in file (y/n)? ";
     std::string input;
     std::getline(std::cin, input);

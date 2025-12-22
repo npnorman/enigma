@@ -154,6 +154,21 @@ class Rotor {
     char getRingOffset() {
         return char(ringOffset + 65);
     }
+
+    void reset() {
+        // reset rotor
+        forward.clear();
+        backward.clear();
+        ringOffset = 0;
+        ringSwitch = 0;
+        rotorName = "";
+    }
+};
+
+// hold combinations of rotor pairings
+struct RotorCombo {
+    std::vector<int> combo;
+    float ic;
 };
 
 #endif

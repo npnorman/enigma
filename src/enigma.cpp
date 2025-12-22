@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include <fstream>
+#include <algorithm>
 #include "utils.h"
 #include "cryptography.h"
 
@@ -18,13 +19,16 @@ void setupPlugboard();
 void encryptLive();
 void encryptFromFile();
 void turnRotors();
-std::string encrypt(std::string plaintext);
+std::string encrypt(std::string plaintext, bool traceOveride = false);
 char encryptLetter(char letter);
+char encryptLetterWithoutTrace(char letter);
 void loadFile();
 void saveFile();
+std::string getTextFromFile();
 
 //cracking
 void testIndexOfCoincidence();
+void breakCiphertext();
 
 //may need a backend setup rotor for cracking
 
@@ -70,6 +74,10 @@ int main() {
             //Crack
             testIndexOfCoincidence();
 
+        } else if (input == "5") {
+            //Crack
+            breakCiphertext();
+
         } else if (input == "a") {
             //Display menu again
             displayMenu();
@@ -102,7 +110,8 @@ void displayMenu() {
     << std::endl << "1) Setup Machine Rotors & Plugboard"
     << std::endl << "2) Encrypt live"
     << std::endl << "3) Encrypt from a file"
-    << std::endl << "4) Get Index of Coincidence of file"
+    << std::endl << "4) Calculate Index of Coincidence of file"
+    << std::endl << "5) Break encrypted file"
     << std::endl << "a) Display Menu"
     << std::endl << "b) Exit Program"
     << std::endl;
@@ -204,14 +213,20 @@ void encryptLive() {
     displayMenu();
 }
 
-std::string encrypt(std::string plaintext) {
+std::string encrypt(std::string plaintext, bool traceOveride) {
     std::string output = "";
     
     for (int i = 0; i < plaintext.length(); i++) {
 
         // if a plaintext letter, encrypt
         if (std::isalpha(plaintext[i])) {
-            output += encryptLetter(plaintext[i]);
+
+            if (traceOveride) {
+                output += encryptLetterWithoutTrace(plaintext[i]);
+            } else {
+                output += encryptLetter(plaintext[i]);
+            }
+            
         } else {
             output += plaintext[i];
         }
@@ -285,6 +300,42 @@ char encryptLetter(char letter) {
 
     if (isTracing) {
         std::cout << trace.str() << std::endl;
+    }
+
+    char newLetter = char(letterPos + 65);
+
+    return newLetter;
+}
+
+char encryptLetterWithoutTrace(char letter) {
+
+    //turn rotors first
+    turnRotors();
+
+    //trace start
+    for (int i = 0; i < currentRotors.size(); i++) {
+    }
+
+    // convert letter to position (0-25)
+    letter = char(std::toupper(letter));
+    int letterPos = (int)letter - 65;
+
+    //map through initial rotors
+    for (int i = 0; i < currentRotors.size(); i++) {
+
+        int currentRotorIndex = 2-i;
+
+        //get forward mapping
+        letterPos = currentRotors[currentRotorIndex].getForward(letterPos);
+    }
+
+    // reflect
+    letterPos = Enigma_I_UKW_B[letterPos][1];
+
+    // for each rotor (backward)
+    for (int i = 0; i < currentRotors.size(); i++) {
+        // get mapping from rotor i, plug in last to current
+        letterPos = currentRotors[i].getBackward(letterPos);
     }
 
     char newLetter = char(letterPos + 65);
@@ -366,11 +417,10 @@ void encryptFromFile() {
     displayMenu();
 }
 
-void testIndexOfCoincidence() {
-    //get file
+std::string getTextFromFile() {
     // ask which file in /in/ to encode
     std::string inFileName = "";
-    std::cout << "Please type file name to test Ic(x): ";
+    std::cout << "Please type file name: ";
     std::getline(std::cin, inFileName);
 
     std::string inPath = "./in/";
@@ -385,12 +435,128 @@ void testIndexOfCoincidence() {
     
     while (std::getline(inputFile, line)) {
         inputText += line;
+        inputText.push_back('\n');
     }
 
     inputFile.close();
 
+    return inputText;
+}
+
+void testIndexOfCoincidence() {
+    //get file
+    std::string inputText = getTextFromFile();
+
     // print Ic
+    std::cout << "Ic(English text) is approx 0.065, Ic(Random/Uniform text) is approx 0.0384" << std::endl;
     std::cout << "Index of Coincidence = " << indexOfCoincidence(inputText) << std::endl;
 
     displayMenu();
+}
+
+void breakCiphertext() {
+    // set up rotors
+    currentRotors.clear();
+
+    for (int i = 0; i < 3; i++) {
+        Rotor tempRotor = Rotor();
+        currentRotors.push_back(tempRotor);
+    }
+
+    // set up defaults
+    currentRotors[0].setRotor(RotorNumber::I);
+    currentRotors[1].setRotor(RotorNumber::II);
+    currentRotors[2].setRotor(RotorNumber::III);
+
+    // get file text
+    std::string inputText = getTextFromFile();
+
+    // the idea is that getting part of the "key" correct
+    // will make the index of coincidence better
+
+    // all combos
+    std::vector<RotorCombo> combos;
+
+    // for each combination of rotor
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 5; j++) {
+            
+            if (j == i) {
+                continue;
+            }
+            
+            for (int k = 0; k < 5; k++) {
+                
+                if (k == j || k == i) {
+                    continue;
+                }
+
+                //combination
+                // change current rotor
+                currentRotors[0].reset();
+                currentRotors[1].reset();
+                currentRotors[2].reset();
+                currentRotors[0].setRotor(static_cast<RotorNumber>(i));
+                currentRotors[1].setRotor(static_cast<RotorNumber>(j));
+                currentRotors[2].setRotor(static_cast<RotorNumber>(k));
+
+                // print out current config
+                std::cout << "Trying ";
+                for (int m = 0; m < currentRotors.size(); m++) {
+                    // print config
+                    std::cout << currentRotors[m].getName() << " ";
+                }
+
+                std::cout << std::endl;
+
+                // for each initial position combination
+                for (int ii = 0; ii < 26; ii++) {
+                    for (int jj = 0; jj < 26; jj++) {
+                        for (int kk = 0; kk < 26; kk++) {
+                            //test all
+                            currentRotors[0].setRingOffset(char(ii + 65));
+                            currentRotors[1].setRingOffset(char(jj + 65));
+                            currentRotors[2].setRingOffset(char(kk + 65));
+
+                            // decode (encrypt)
+                            std::string decryptedMessage = encrypt(inputText, true);
+
+                            if ((ii * 676 + jj * 26 + kk) % 1000 == 0) {
+                                std::cout << ".";  // Progress indicator
+                                std::cout.flush();
+                            }
+
+                            // calculate index of coincidence
+                            float ic = indexOfCoincidence(decryptedMessage);
+
+                            // save combo
+                            if (ic > 0.60) {
+                                std::vector<int> tempVector = {i,j,k,ii,jj,kk};
+                                combos.push_back({tempVector, ic});
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // sort vectors to find top 5
+    std::sort(combos.begin(), combos.end(), [](const RotorCombo &a, const RotorCombo &b) {
+        return a.ic < b.ic;
+    });
+
+    std::cout << "Top Ic(x) Scores: " << std::endl;
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < combos[i].combo.size(); j++) {
+            std::cout << combos[i].combo[j] << " ";
+        }
+
+        std::cout << "Ic(x) = " << combos[i].ic << std::endl;
+    }
+
+    // save decrypted text in file
+
+    // Note, use of Bigrams and Trigrams may be used in addition to index of coincidence.
+    // As of now they are not in use.
 }

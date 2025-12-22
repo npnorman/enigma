@@ -24,7 +24,8 @@ char encryptLetter(char letter);
 char encryptLetterWithoutTrace(char letter);
 void loadFile();
 void saveFile();
-std::string getTextFromFile();
+std::string getFileName();
+std::string getTextFromFile(std::string inFileName);
 
 //cracking
 void testIndexOfCoincidence();
@@ -417,12 +418,16 @@ void encryptFromFile() {
     displayMenu();
 }
 
-std::string getTextFromFile() {
+std::string getFileName() {
     // ask which file in /in/ to encode
     std::string inFileName = "";
     std::cout << "Please type file name: ";
     std::getline(std::cin, inFileName);
 
+    return inFileName;
+}
+
+std::string getTextFromFile(std::string inFileName) {
     std::string inPath = "./in/";
     std::string inFullPath = inPath + inFileName;
 
@@ -445,7 +450,8 @@ std::string getTextFromFile() {
 
 void testIndexOfCoincidence() {
     //get file
-    std::string inputText = getTextFromFile();
+    std::string inFileName = getFileName();
+    std::string inputText = getTextFromFile(inFileName);
 
     // print Ic
     std::cout << "Ic(English text) is approx 0.065, Ic(Random/Uniform text) is approx 0.0384" << std::endl;
@@ -469,7 +475,8 @@ void breakCiphertext() {
     currentRotors[2].setRotor(RotorNumber::III);
 
     // get file text
-    std::string inputText = getTextFromFile();
+    std::string inFileName = getFileName();
+    std::string inputText = getTextFromFile(inFileName);
 
     // the idea is that getting part of the "key" correct
     // will make the index of coincidence better
@@ -521,7 +528,7 @@ void breakCiphertext() {
                             // decode (encrypt)
                             std::string decryptedMessage = encrypt(inputText, true);
 
-                            if ((ii * 676 + jj * 26 + kk) % 1000 == 0) {
+                            if ((ii * 676 + jj * 26 + kk) % 4000 == 0) {
                                 std::cout << ".";  // Progress indicator
                                 std::cout.flush();
                             }
@@ -530,7 +537,7 @@ void breakCiphertext() {
                             float ic = indexOfCoincidence(decryptedMessage);
 
                             // save combo
-                            if (ic > 0.60) {
+                            if (ic > 0.050) {
                                 std::vector<int> tempVector = {i,j,k,ii,jj,kk};
                                 combos.push_back({tempVector, ic});
                             }
@@ -548,14 +555,55 @@ void breakCiphertext() {
 
     std::cout << "Top Ic(x) Scores: " << std::endl;
     for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < combos[i].combo.size(); j++) {
-            std::cout << combos[i].combo[j] << " ";
-        }
+        if (i < combos.size()) {
+            for (int j = 0; j < combos[i].combo.size(); j++) {
+                std::cout << combos[i].combo[j] << " ";
+            }
 
-        std::cout << "Ic(x) = " << combos[i].ic << std::endl;
+            std::cout << "Ic(x) = " << combos[i].ic << std::endl;
+        }
     }
 
     // save decrypted text in file
+        // save to new file
+    std::string outPath = "./out/";
+    std::string outFileName = "";
+
+    std::stringstream fileNameComponenets;
+    for (int i = 0; i < combos[0].combo.size(); i++) {
+        fileNameComponenets << combos[0].combo[i] << "_";
+    }
+
+    if (combos.empty()) {
+        std::cout << "Not matching settings found" << std::endl;
+        return;
+    }
+
+    outFileName = fileNameComponenets.str() + inFileName;
+
+    std::string outFullPath = outPath + outFileName;
+
+    std::ofstream outputFile(outFullPath);
+
+    //decrypt message with saved combo
+    std::string decryptedMessage = "";
+
+    currentRotors[0].reset();
+    currentRotors[1].reset();
+    currentRotors[2].reset();
+    currentRotors[0].setRotor(static_cast<RotorNumber>(combos[0].combo[0]));
+    currentRotors[1].setRotor(static_cast<RotorNumber>(combos[0].combo[1]));
+    currentRotors[2].setRotor(static_cast<RotorNumber>(combos[0].combo[2]));
+    currentRotors[0].setRingOffset(static_cast<char>(combos[0].combo[3] + 65));
+    currentRotors[1].setRingOffset(static_cast<char>(combos[0].combo[4] + 65));
+    currentRotors[2].setRingOffset(static_cast<char>(combos[0].combo[5] + 65));
+
+    decryptedMessage = encrypt(inputText, true);
+
+    outputFile << decryptedMessage;
+    outputFile.close();
+
+    std::cout << outFileName << " written to /out/" << std::endl;
 
     // Note, use of Bigrams and Trigrams may be used in addition to index of coincidence.
     // As of now they are not in use.
